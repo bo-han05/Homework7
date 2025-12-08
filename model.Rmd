@@ -1,0 +1,43 @@
+---
+title: "model"
+author: "Bo Han"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Homework 4p2
+
+```{r, message = F}
+library(tidyverse)
+library(lubridate)
+
+train = read.csv("train_dataset.csv.gz")
+```
+
+#### Transformation of Variables
+```{r}
+train = train %>%
+  mutate(
+    appt_time = ymd_hms(appt_time, tz="UTC"),
+    appt_date = as.Date(appt_time),
+    appt_hour = hour(appt_time),
+    appt_day = wday(appt_time, label=T, abbr=T),
+    diff_time = as.numeric(difftime(appt_date, as.Date(appt_made), units="days")))
+```
+
+The code above standardizes the appt_time variable from the original datasets, and adds appt_date, appt_hour, appt_day, and diff_time. appt_date takes the date component from appt_date values, appt_hour takes the hour component from appt_date values, appt_day converts the date components from appt_date values into days of the week, and diff_time is the difference between appt_date and appt_made in days. These new variables will be used as predictors in our model.
+
+#### Prediction Model
+```{r}
+model = glm(no_show ~ appt_day + appt_hour + diff_time,
+            data=train, family=binomial())
+summary(model)
+
+save(model, file="model.RData")
+```
+
+The code above implements a model that predicts no_show by appt_day, appt_hour, and diff_time using logistic regression on our training data. Logistic regression is used because no_show is a binary outcome, logistic regression outputs probabilities, and it is simple and easy to interpret.
