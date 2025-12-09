@@ -2,12 +2,12 @@
 
 library(tidyverse)
 library(lubridate)
-library(plumber)
+library(plumber2)
 library(jsonlite)
 
 load("model.RData")
 
-preprocess_data = function(df) {
+clean_data = function(df){
   df %>%
     mutate(
       appt_time = ymd_hms(appt_time, tz="UTC"),
@@ -20,21 +20,23 @@ preprocess_data = function(df) {
 
 #* Predict probability of no-shows
 #* @post /predict_prob
-function(req) {
-  input_df <- jsonlite::fromJSON(req$postBody)
-  if (!is.data.frame(input_df)) input_df <- as.data.frame(input_df)
-  processed <- preprocess_data(input_df)
-  preds <- predict(model, newdata = processed, type = "response")
-  return(as.numeric(preds))
+#* @parser json
+#* @serializer json
+function(body){
+  body = as.data.frame(body)
+  data = clean_data(body)
+  prob = predict(model, newdata=data, type="response")
+  as.numeric(prob)
 }
 
 #* Predict no-show class
 #* @post /predict_class
-function(req) {
-  input_df <- jsonlite::fromJSON(req$postBody)
-  if (!is.data.frame(input_df)) input_df <- as.data.frame(input_df)
-  processed <- preprocess_data(input_df)
-  probs <- predict(model, newdata = processed, type = "response")
-  classes <- ifelse(probs >= 0.5, 1, 0)
-  return(as.numeric(classes))
+#* @parser json
+#* @serializer json
+function(body){
+  body = as.data.frame(body)
+  data = clean_data(body)
+  prob = predict(model, newdata=data, type="response")
+  class = ifelse(prob >= 0.5, 1, 0)
+  as.numeric(class)
 }
