@@ -4,8 +4,12 @@ library(httr)
 library(jsonlite)
 
 input_df = data.frame(
-  appt_time = c("2025-11-01 13:00:00", "2025-12-08 09:30:00"),
-  appt_made = c("2025-08-21", "2025-10-18")
+  appt_time = c("2025-11-01 20:00:00",
+                "2025-12-06 12:30:00",
+                "2025-02-12 10:00:00"),
+  appt_made = c("2025-08-21",
+                "2025-10-18",
+                "2024-12-25")
 )
 
 json_input = toJSON(input_df, dataframe="rows")
@@ -17,8 +21,6 @@ prob_result = POST(
   encode = "json",
   content_type_json()
 )
-
-stop_for_status(prob_result)
 
 prob_vector = fromJSON(content(prob_result, "text", encoding="UTF-8"))
 
@@ -32,8 +34,6 @@ class_result = POST(
   encode = "json",
   content_type_json()
 )
-
-stop_for_status(class_result)
 
 class_vector = fromJSON(content(class_result, "text", encoding="UTF-8"))
 
